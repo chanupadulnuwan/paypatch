@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'add_friend_screen.dart';
 
-
 class FriendsScreen extends StatelessWidget {
   const FriendsScreen({super.key});
 
@@ -14,16 +13,16 @@ class FriendsScreen extends StatelessWidget {
       return Card(
         elevation: 0,
         margin: const EdgeInsets.only(bottom: 10),
-        color: const Color.fromARGB(255, 245, 251, 245), // soft background
-        surfaceTintColor: Colors.transparent, // remove M3 tint
+        color: const Color.fromARGB(255, 245, 251, 245),
+        surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(18),
-          side: BorderSide(color: cs.outlineVariant), // gray border
+          side: BorderSide(color: cs.outlineVariant),
         ),
         child: ListTile(
           leading: CircleAvatar(
-            backgroundColor: cs.outlineVariant, // gray circle
-            child: const Icon(Icons.person, color: Colors.white), // white icon
+            backgroundColor: cs.outlineVariant,
+            child: const Icon(Icons.person, color: Colors.white),
           ),
           title: Text(
             name,
@@ -31,6 +30,11 @@ class FriendsScreen extends StatelessWidget {
           ),
           subtitle: Text(subtitle),
           trailing: const Icon(Icons.chevron_right),
+          onTap: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('$name tapped (demo)')),
+            );
+          },
         ),
       );
     }
@@ -46,35 +50,37 @@ class FriendsScreen extends StatelessWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: cs.primary, 
+        backgroundColor: cs.primary,
         foregroundColor: Colors.white,
         onPressed: () {
-  showDialog(
-    context: context,
-    builder: (_) => AlertDialog(
-      title: const Text('Contact Access'),
-      content: const Text(
-        'This is a prototype demo.\n\nIn a real app, PayPatch would request permission to read contacts.',
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        FilledButton(
-          onPressed: () {
-            Navigator.pop(context);
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Permission granted (demo)')),
-            );
-          },
-          child: const Text('Allow'),
-        ),
-      ],
-    ),
-  );
-},
-
+          showDialog(
+            context: context,
+            builder: (_) => AlertDialog(
+              title: const Text('Contact Access'),
+              content: const Text(
+                'This is a prototype demo.\n\nIn a real app, PayPatch would request permission to read contacts.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    Navigator.pop(context); // close dialog
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const AddFriendScreen(),
+                      ),
+                    );
+                  },
+                  child: const Text('Allow'),
+                ),
+              ],
+            ),
+          );
+        },
         child: const Icon(Icons.person_add),
       ),
     );
