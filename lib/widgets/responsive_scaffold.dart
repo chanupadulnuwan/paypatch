@@ -14,80 +14,57 @@ class ResponsiveScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isWide = constraints.maxWidth >= 800; // tablet/desktop
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
-        if (!isWide) {
-          // Mobile layout: bottom navigation
-          return Scaffold(
-            body: pages[index],
-            bottomNavigationBar: NavigationBar(
-              selectedIndex: index,
-              onDestinationSelected: onIndexChanged,
-              destinations: const [
-                NavigationDestination(
-                  icon: Icon(Icons.groups_outlined),
-                  selectedIcon: Icon(Icons.groups),
-                  label: 'Groups',
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.person_add_alt_1_outlined),
-                  selectedIcon: Icon(Icons.person_add_alt_1),
-                  label: 'Friends',
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.timeline_outlined),
-                  selectedIcon: Icon(Icons.timeline),
-                  label: 'Activity',
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.settings_outlined),
-                  selectedIcon: Icon(Icons.settings),
-                  label: 'Settings',
-                ),
-              ],
+    return Scaffold(
+      body: pages[index],
+
+      // ALWAYS bottom navigation (no left rail)
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: isDark ? cs.surface : cs.surface,
+          border: Border(
+            top: BorderSide(
+              color: cs.outlineVariant,
+              width: 1,
             ),
-          );
-        }
-
-        // Tablet layout: NavigationRail + content (different layout = marks)
-        return Scaffold(
-          body: Row(
-            children: [
-              NavigationRail(
-                selectedIndex: index,
-                onDestinationSelected: onIndexChanged,
-                labelType: NavigationRailLabelType.all,
-                destinations: const [
-                  NavigationRailDestination(
-                    icon: Icon(Icons.groups_outlined),
-                    selectedIcon: Icon(Icons.groups),
-                    label: Text('Groups'),
-                  ),
-                  NavigationRailDestination(
-                    icon: Icon(Icons.person_add_alt_1_outlined),
-                    selectedIcon: Icon(Icons.person_add_alt_1),
-                    label: Text('Friends'),
-                  ),
-                  NavigationRailDestination(
-                    icon: Icon(Icons.timeline_outlined),
-                    selectedIcon: Icon(Icons.timeline),
-                    label: Text('Activity'),
-                  ),
-                  NavigationRailDestination(
-                    icon: Icon(Icons.settings_outlined),
-                    selectedIcon: Icon(Icons.settings),
-                    label: Text('Settings'),
-                  ),
-                ],
-              ),
-              const VerticalDivider(width: 1),
-              Expanded(child: pages[index]),
-            ],
           ),
-        );
-      },
+        ),
+        child: BottomNavigationBar(
+          currentIndex: index,
+          onTap: onIndexChanged,
+          type: BottomNavigationBarType.fixed, // spread across full width
+          showUnselectedLabels: true,
+          backgroundColor: isDark ? cs.surface : cs.surface,
+          selectedItemColor: cs.primary,
+          unselectedItemColor: cs.onSurface.withOpacity(isDark ? 0.65 : 0.6),
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700),
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.groups_outlined),
+              activeIcon: Icon(Icons.groups),
+              label: 'Groups',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_add_alt_1_outlined),
+              activeIcon: Icon(Icons.person_add_alt_1),
+              label: 'Friends',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.timeline_outlined),
+              activeIcon: Icon(Icons.timeline),
+              label: 'Activity',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.settings_outlined),
+              activeIcon: Icon(Icons.settings),
+              label: 'Settings',
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
