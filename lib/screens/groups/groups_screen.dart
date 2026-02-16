@@ -1,7 +1,6 @@
-// ignore_for_file: unnecessary_const
-
 import 'package:flutter/material.dart';
 
+import '../../main.dart';
 import '../../data/sample_data.dart';
 import '../../models/group.dart';
 import '../../widgets/app_routes.dart';
@@ -51,7 +50,7 @@ class _GroupsScreenState extends State<GroupsScreen> {
       builder: (_) {
         return ProfileSheet(
           onLogout: () {
-            Navigator.pop(context); // close sheet
+            Navigator.pop(context);
             Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(builder: (_) => const LoginScreen()),
@@ -70,38 +69,64 @@ class _GroupsScreenState extends State<GroupsScreen> {
     return 'Good evening';
   }
 
-  
   Widget _buildList(bool isTablet) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    const userName = 'chanupa'; // dummy
+    const userName = 'chanupa';
     final greeting = _greetingText();
+
+    const lightPageBg = Color.fromARGB(255, 245, 251, 245);
+
+    final headerBg = isDark ? cs.surface : cs.primary;
+    final headerText = isDark ? cs.onSurface : Colors.white;
+    final headerSubText =
+        isDark ? cs.onSurface.withOpacity(0.7) : Colors.white70;
+
+    final groupCardBg = isDark ? cs.surfaceVariant : lightPageBg;
 
     return Scaffold(
       backgroundColor: cs.surface,
 
-      
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: Theme.of(context).colorScheme.primary, 
-        foregroundColor: Colors.white,
-        onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Create New Group (UI only)')),
-          );
-        },
-        icon: const Icon(Icons.add),
-        label: const Text('Create New Group'),
-      ),
+      // ✅ FAB updated for dark mode
+      floatingActionButton: isDark
+          ? FloatingActionButton.extended(
+              backgroundColor: cs.surface,
+              foregroundColor: cs.primary, // green text/icon
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: BorderSide(color: cs.primary, width: 1.2), // green border
+              ),
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Create New Group (UI only)')),
+                );
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('Create New Group'),
+            )
+          : FloatingActionButton.extended(
+              backgroundColor: cs.primary,
+              foregroundColor: Colors.white,
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Create New Group (UI only)')),
+                );
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('Create New Group'),
+            ),
 
       body: ListView(
         padding: EdgeInsets.zero,
         children: [
-          // GREEN HEADER WITH GREETING AND SEARCH
+          // ===== HEADER =====
           Container(
             padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
             decoration: BoxDecoration(
-              color: cs.primary,
+              color: headerBg,
               borderRadius: const BorderRadius.vertical(
                 bottom: Radius.circular(28),
               ),
@@ -117,8 +142,8 @@ class _GroupsScreenState extends State<GroupsScreen> {
                         children: [
                           Text(
                             'Hello $userName!',
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: headerText,
                               fontSize: 20,
                               fontWeight: FontWeight.w800,
                             ),
@@ -126,38 +151,43 @@ class _GroupsScreenState extends State<GroupsScreen> {
                           const SizedBox(height: 4),
                           Text(
                             greeting,
-                            style: const TextStyle(color: Colors.white70),
+                            style: TextStyle(color: headerSubText),
                           ),
                         ],
                       ),
                     ),
                     IconButton(
                       onPressed: _openProfileSheet,
-                      icon:
-                          const Icon(Icons.person_outline, color: Colors.white),
+                      icon: Icon(Icons.person_outline, color: headerText),
                       tooltip: 'Profile',
                     ),
                     IconButton(
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Theme toggle (UI only)'),
-                          ),
-                        );
+                        PayPatchApp.of(context).controller.toggleTheme();
                       },
-                      icon: const Icon(Icons.dark_mode_outlined,
-                          color: Colors.white),
+                      icon: Icon(
+                        isDark
+                            ? Icons.light_mode_outlined
+                            : Icons.dark_mode_outlined,
+                        color: headerText,
+                      ),
                       tooltip: 'Theme',
                     ),
                   ],
                 ),
-                const SizedBox(height: 17), //hearder hight
-                const Padding(
-                  padding: EdgeInsets.only(bottom: 4),
-                  child: SizedBox(
-                    height: 40, // change this value
-                    child: AppSearchBar(),
+                const SizedBox(height: 17),
+
+                // ✅ Search bar visibility fix in dark mode
+                Container(
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? cs.surfaceVariant.withOpacity(0.9) // dark gray
+                        : Colors.transparent, // keep original light look
+                    borderRadius: BorderRadius.circular(22),
                   ),
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: const AppSearchBar(),
                 ),
               ],
             ),
@@ -165,33 +195,41 @@ class _GroupsScreenState extends State<GroupsScreen> {
 
           const SizedBox(height: 16),
 
-          // ORANGE BALANCE CARD (full width)
+          // ===== BALANCE CARD =====
           Card(
             elevation: 0,
-            color: cs.secondary,
             margin: const EdgeInsets.symmetric(horizontal: 16),
+            color: isDark ? cs.surface : cs.secondary,
+            surfaceTintColor: Colors.transparent,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18),
+              side: BorderSide(
+                color: isDark ? cs.secondary : Colors.transparent,
+                width: isDark ? 1.2 : 0,
+              ),
             ),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Total Balance',
-                    style: TextStyle(color: Colors.white70),
+                    style: TextStyle(
+                      color: isDark ? cs.secondary : Colors.white70,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Padding(
                     padding: const EdgeInsets.only(left: 10),
                     child: RichText(
-                      text: const TextSpan(
+                      text: TextSpan(
                         children: [
                           TextSpan(
                             text: '\$450.50 ',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: isDark ? cs.onSurface : Colors.white,
                               fontSize: 28,
                               fontWeight: FontWeight.w800,
                             ),
@@ -199,9 +237,9 @@ class _GroupsScreenState extends State<GroupsScreen> {
                           TextSpan(
                             text: 'you are owed',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: isDark ? cs.secondary : Colors.white,
                               fontSize: 16,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
@@ -215,7 +253,7 @@ class _GroupsScreenState extends State<GroupsScreen> {
 
           const SizedBox(height: 18),
 
-          // page padding with group list
+          // ===== GROUP LIST AREA =====
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
@@ -225,36 +263,47 @@ class _GroupsScreenState extends State<GroupsScreen> {
                   'Your Groups',
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w400,
+                    color: isDark ? cs.onSurface : null,
                   ),
                 ),
                 const SizedBox(height: 12),
 
-                // ===== GROUPS LIST =====
                 ...sampleGroups.map((group) {
                   return Card(
                     elevation: 0,
                     margin: const EdgeInsets.only(bottom: 12),
-                    color: const Color.fromARGB(255, 245, 251, 245), // <- force white
-                    surfaceTintColor:
-                        Colors.transparent, // <- stop Material3 tint
+                    color: groupCardBg,
+                    surfaceTintColor: Colors.transparent,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(18),
-                      side: BorderSide(color: cs.outlineVariant), // gray border
+                      side: BorderSide(color: cs.outlineVariant),
                     ),
                     child: ListTile(
                       leading: Hero(
                         tag: group.id,
                         child: CircleAvatar(
-                          backgroundColor: cs.outlineVariant, // gray background
-                          child: const Icon(Icons.groups,
-                              color: Colors.white), // white icon
+                          backgroundColor: isDark
+                              ? cs.primary.withOpacity(0.25)
+                              : cs.outlineVariant,
+                          child: Icon(
+                            Icons.groups,
+                            color: isDark ? cs.primary : Colors.white,
+                          ),
                         ),
                       ),
                       title: Text(
                         group.name,
-                        style: const TextStyle(fontWeight: FontWeight.w700),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? cs.onSurface : null,
+                        ),
                       ),
-                      subtitle: Text('${group.members} members'),
+                      subtitle: Text(
+                        '${group.members} members',
+                        style: TextStyle(
+                          color: isDark ? cs.onSurface.withOpacity(0.7) : null,
+                        ),
+                      ),
                       trailing: Text(
                         group.balance >= 0
                             ? '+\$${group.balance.toStringAsFixed(2)}'
@@ -280,7 +329,6 @@ class _GroupsScreenState extends State<GroupsScreen> {
                   );
                 }),
 
-                // space for FAB
                 const SizedBox(height: 80),
               ],
             ),

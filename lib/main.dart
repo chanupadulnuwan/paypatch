@@ -1,11 +1,30 @@
 import 'package:flutter/material.dart';
 import 'theme/app_theme.dart';
-import 'screens/auth/login_screen.dart';
+import 'theme/theme_controller.dart';
+import 'screens/home/home_screen.dart';
 
-void main() => runApp(const PayPatchApp());
+void main() {
+  runApp(const PayPatchApp());
+}
 
-class PayPatchApp extends StatelessWidget {
+class PayPatchApp extends StatefulWidget {
   const PayPatchApp({super.key});
+
+  static _PayPatchAppState of(BuildContext context) =>
+      context.findAncestorStateOfType<_PayPatchAppState>()!;
+
+  @override
+  State<PayPatchApp> createState() => _PayPatchAppState();
+}
+
+class _PayPatchAppState extends State<PayPatchApp> {
+  final ThemeController controller = ThemeController();
+
+  @override
+  void initState() {
+    controller.addListener(() => setState(() {}));
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,8 +33,8 @@ class PayPatchApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.system,
-      home: const LoginScreen(),
+      themeMode: controller.themeMode,
+      home: const HomeScreen(),
     );
   }
 }
