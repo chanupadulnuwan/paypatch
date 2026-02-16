@@ -9,47 +9,55 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _fade;
-  late final Animation<double> _slide;
+    with TickerProviderStateMixin {
+  late final AnimationController _logoCtrl;
+  late final AnimationController _mottoCtrl;
 
   @override
   void initState() {
     super.initState();
 
-    _controller = AnimationController(
+    _logoCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2300),
+    );
+
+    _mottoCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 900),
     );
 
-    _fade = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
-    _slide = Tween<double>(begin: 18, end: 0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
-    );
+    _logoCtrl.forward();
 
-    _controller.forward();
-
-    // go to login after a short delay
-    Future.delayed(const Duration(milliseconds: 1400), () {
+    // show motto slightly later
+    Future.delayed(const Duration(milliseconds: 1900), () {
       if (!mounted) return;
-      Navigator.of(context).pushReplacement(_fadeRoute(const LoginScreen()));
+      _mottoCtrl.forward();
+    });
+
+    // go to login after ~4 seconds (visible)
+    Future.delayed(const Duration(milliseconds: 4000), () {
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(_slowFadeRoute(const LoginScreen()));
     });
   }
 
-  PageRouteBuilder _fadeRoute(Widget page) {
+  PageRouteBuilder _slowFadeRoute(Widget page) {
     return PageRouteBuilder(
-      transitionDuration: const Duration(milliseconds: 450),
+      transitionDuration: const Duration(milliseconds: 900),
+      reverseTransitionDuration: const Duration(milliseconds: 900),
       pageBuilder: (_, __, ___) => page,
       transitionsBuilder: (_, animation, __, child) {
-        return FadeTransition(opacity: animation, child: child);
+        final curved = CurvedAnimation(parent: animation, curve: Curves.easeInOut);
+        return FadeTransition(opacity: curved, child: child);
       },
     );
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _logoCtrl.dispose();
+    _mottoCtrl.dispose();
     super.dispose();
   }
 
@@ -57,52 +65,103 @@ class _SplashScreenState extends State<SplashScreen>
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
 
+    // Each char pops in one-by-one
+    Widget animatedWord(String word, Color color, {required int startIndex}) {
+      final chars = word.split('');
+
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: List.generate(chars.length, (i) {
+          final charIndex = startIndex + i;
+
+          // Stagger timing for each letter
+          final start = (charIndex * 0.08).clamp(0.0, 0.95);
+          final end = (start + 0.35).clamp(0.0, 1.0);
+
+          final anim = CurvedAnimation(
+            parent: _logoCtrl,
+            curve: Interval(start, end, curve: Curves.elasticOut),
+          );
+
+          return AnimatedBuilder(
+            animation: anim,
+            builder: (_, __) {
+              final scale = 0.2 + (0.8 * anim.value); // pop effect
+              final opacity = anim.value.clamp(0.0, 1.0);
+
+              return Opacity(
+                opacity: opacity,
+                child: Transform.scale(
+                  scale: scale,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 0.5),
+                    child: Text(
+                      chars[i],
+                      style: TextStyle(
+                        fontSize: 44,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.2,
+                        color: color,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          );
+        }),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
-        child: AnimatedBuilder(
-          animation: _controller,
-          builder: (context, _) {
-            return Opacity(
-              opacity: _fade.value,
-              child: Transform.translate(
-                offset: Offset(0, _slide.value),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    RichText(
-                      text: TextSpan(
-                        style: const TextStyle(
-                          fontSize: 40,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 0.2,
-                        ),
-                        children: [
-                          TextSpan(
-                            text: 'Pay',
-                            style: TextStyle(color: cs.primary),
-                          ),
-                          TextSpan(
-                            text: 'Patch',
-                            style: TextStyle(color: cs.secondary),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      'Split smart. Settle fast.',
-                      style: TextStyle(
-                        color: Colors.black.withOpacity(0.65),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // PayPatch logo (animated letter by letter)
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                animatedWord('Pay', cs.primary, startIndex: 0),
+                const SizedBox(width: 6),
+                animatedWord('Patch', cs.secondary, startIndex: 3),
+              ],
+            ),
+
+            const SizedBox(height: 14),
+
+            // Motto fades in later
+            FadeTransition(
+              opacity: CurvedAnimation(parent: _mottoCtrl, curve: Curves.easeOut),
+              child: Text(
+                'Split smart. Settle fast.',
+                style: TextStyle(
+                  color: Colors.black.withOpacity(0.65),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-            );
-          },
+            ),
+
+            const SizedBox(height: 18),
+
+            // small loading indicator (subtle)
+            FadeTransition(
+              opacity: CurvedAnimation(
+                parent: _logoCtrl,
+                curve: const Interval(0.65, 1.0, curve: Curves.easeOut),
+              ),
+              child: SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.6,
+                  valueColor: AlwaysStoppedAnimation<Color>(cs.primary),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

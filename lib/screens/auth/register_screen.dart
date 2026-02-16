@@ -36,7 +36,7 @@ class RegisterScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'No real functionality required — this is a UI prototype.',
+                        '',
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: cs.onSurface.withOpacity(0.7),
                         ),

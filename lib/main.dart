@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'theme/app_theme.dart';
 import 'theme/theme_controller.dart';
 import 'screens/home/home_screen.dart';
+import 'screens/splash/splash_screen.dart';
 
 void main() {
   runApp(const PayPatchApp());
@@ -34,7 +35,9 @@ class _PayPatchAppState extends State<PayPatchApp> {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: controller.themeMode,
-      home: const HomeScreen(),
+
+      // ✅ start with splash, then splash will navigate to LoginScreen
+      home: const SplashScreen(),
     );
   }
 }

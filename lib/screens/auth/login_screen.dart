@@ -17,157 +17,190 @@ class LoginScreen extends StatelessWidget {
           builder: (context, constraints) {
             final isTablet = constraints.maxWidth >= 700;
 
-            return SingleChildScrollView(
-              child: Column(
-                children: [
-                  // Top image banner
-                  _HeaderImage(isTablet: isTablet),
+            final headerH = isTablet ? 340.0 : 260.0;
+            final overlap = isTablet ? 70.0 : 60.0;
 
-                  // Form card area
-                  Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: isTablet ? 48 : 16,
-                      vertical: isTablet ? 24 : 16,
-                    ),
-                    child: Container(
-                      width: isTablet ? 700 : double.infinity,
-                      padding: EdgeInsets.all(isTablet ? 28 : 18),
-                      decoration: BoxDecoration(
-                        color: cs.primary.withOpacity(theme.brightness == Brightness.dark ? 0.35 : 0.90),
-                        borderRadius: BorderRadius.circular(28),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Welcome!',
-                            style: theme.textTheme.headlineMedium?.copyWith(
-                              color: cs.onPrimary,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          const SizedBox(height: 18),
+            final panelColor = theme.brightness == Brightness.dark
+                ? cs.primary.withOpacity(0.35)
+                : cs.primary.withOpacity(0.92);
 
-                          TextField(
-                            keyboardType: TextInputType.emailAddress,
-                            decoration: InputDecoration(
-                              prefixIcon: const Icon(Icons.email_outlined),
-                              hintText: 'Email',
-                              filled: true,
-                              fillColor: cs.surface,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: BorderSide.none,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 14),
+            final contentMaxW = isTablet ? 720.0 : double.infinity;
 
-                          TextField(
-                            obscureText: true,
-                            decoration: InputDecoration(
-                              prefixIcon: const Icon(Icons.lock_outline),
-                              hintText: 'Password',
-                              filled: true,
-                              fillColor: cs.surface,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: BorderSide.none,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 18),
-
-                          SizedBox(
-                            width: double.infinity,
-                            height: 52,
-                            child: FilledButton(
-                              style: FilledButton.styleFrom(
-                                backgroundColor: cs.secondary,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                              ),
-                              // No real auth required. This just lets you demo navigation.
-                              onPressed: () {
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(builder: (_) => const HomeScreen()),
-                                );
-                              },
-                              child: const Text('Login'),
-                            ),
-                          ),
-                          const SizedBox(height: 14),
-
-                          Center(
-                            child: Wrap(
-                              crossAxisAlignment: WrapCrossAlignment.center,
-                              children: [
-                                Text(
-                                  "If you don't have an account ",
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: cs.onPrimary.withOpacity(0.9),
-                                  ),
-                                ),
-                                InkWell(
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(builder: (_) => const RegisterScreen()),
-                                    );
-                                  },
-                                  child: Text(
-                                    'sign up',
-                                    style: theme.textTheme.bodyMedium?.copyWith(
-                                      color: cs.secondary,
-                                      fontWeight: FontWeight.w700,
-                                      decoration: TextDecoration.underline,
-                                      decorationColor: cs.secondary,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+            return Column(
+              children: [
+                // TOP IMAGE
+                SizedBox(
+                  height: headerH,
+                  width: double.infinity,
+                  child: Image.asset(
+                    'assets/images/cover.jpg',
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: cs.primary.withOpacity(0.25),
+                        alignment: Alignment.center,
+                        child: const Icon(Icons.image_not_supported_outlined, size: 48),
+                      );
+                    },
                   ),
-                ],
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-}
+                ),
 
-class _HeaderImage extends StatelessWidget {
-  const _HeaderImage({required this.isTablet});
-  final bool isTablet;
+                // GREEN PANEL (fills the rest of the screen)
+                Expanded(
+                  child: Stack(
+                    children: [
+                      // panel background
+                      Positioned(
+                        top: -overlap,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: panelColor,
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(34),
+                              topRight: Radius.circular(34),
+                            ),
+                          ),
+                        ),
+                      ),
 
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: isTablet ? 260 : 220,
-      width: double.infinity,
-      child: ClipRRect(
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(isTablet ? 40 : 28),
-          bottomRight: Radius.circular(isTablet ? 40 : 28),
-        ),
-        child: Image.asset(
-          'assets/images/wallet.jpg', // put your image here
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            // fallback if image missing (still looks fine)
-            return Container(
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.25),
-              alignment: Alignment.center,
-              child: const Icon(Icons.image_not_supported_outlined, size: 48),
+                      // panel content
+                      Positioned.fill(
+                        child: Align(
+                          alignment: Alignment.topCenter,
+                          child: SingleChildScrollView(
+                            padding: EdgeInsets.fromLTRB(
+                              0,
+                              22, // inside top padding
+                              0,
+                              24,
+                            ),
+                            child: Center(
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(maxWidth: contentMaxW),
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: isTablet ? 40 : 18,
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        'Welcome!',
+                                        style: theme.textTheme.headlineMedium?.copyWith(
+                                          color: cs.onPrimary,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 18),
+
+                                      TextField(
+                                        keyboardType: TextInputType.emailAddress,
+                                        decoration: InputDecoration(
+                                          prefixIcon: Icon(
+                                            Icons.email_outlined,
+                                            color: cs.onSurface.withOpacity(0.7),
+                                          ),
+                                          hintText: 'Email',
+                                          filled: true,
+                                          fillColor: cs.surface,
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(16),
+                                            borderSide: BorderSide.none,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 14),
+
+                                      TextField(
+                                        obscureText: true,
+                                        decoration: InputDecoration(
+                                          prefixIcon: Icon(
+                                            Icons.lock_outline,
+                                            color: cs.onSurface.withOpacity(0.7),
+                                          ),
+                                          hintText: 'Password',
+                                          filled: true,
+                                          fillColor: cs.surface,
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(16),
+                                            borderSide: BorderSide.none,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 18),
+
+                                      SizedBox(
+                                        width: double.infinity,
+                                        height: 52,
+                                        child: FilledButton(
+                                          style: FilledButton.styleFrom(
+                                            backgroundColor: cs.secondary,
+                                            foregroundColor: Colors.white,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(16),
+                                            ),
+                                          ),
+                                          onPressed: () {
+                                            Navigator.pushReplacement(
+                                              context,
+                                              MaterialPageRoute(builder: (_) => const HomeScreen()),
+                                            );
+                                          },
+                                          child: const Text('Login'),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16),
+
+                                      Center(
+                                        child: Wrap(
+                                          crossAxisAlignment: WrapCrossAlignment.center,
+                                          children: [
+                                            Text(
+                                              "If you don't have an account ",
+                                              style: theme.textTheme.bodyMedium?.copyWith(
+                                                color: cs.onPrimary.withOpacity(0.9),
+                                              ),
+                                            ),
+                                            InkWell(
+                                              onTap: () {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (_) => const RegisterScreen(),
+                                                  ),
+                                                );
+                                              },
+                                              child: Text(
+                                                'sign up',
+                                                style: theme.textTheme.bodyMedium?.copyWith(
+                                                  color: cs.secondary,
+                                                  fontWeight: FontWeight.w800,
+                                                  decoration: TextDecoration.underline,
+                                                  decorationColor: cs.secondary,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+
+                                      const SizedBox(height: 24),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             );
           },
         ),
