@@ -240,7 +240,7 @@ class GroupsScreen extends StatelessWidget {
 
               const SizedBox(height: 18),
 
-              // ===== TITLE =====
+              // TITLE 
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
@@ -254,7 +254,7 @@ class GroupsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
 
-              // ===== MOBILE: SAME LIST VIEW / TABLET: BIG BOX GRID =====
+              //  MOBILE: SAME LIST VIEW / TABLET: BIG BOX GRID 
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: isTablet
@@ -277,7 +277,7 @@ class GroupsScreen extends StatelessWidget {
   }
 }
 
-// ----------------- MOBILE LIST (same style as before) -----------------
+// ------ MOBILE LIST 
 class _MobileList extends StatelessWidget {
   final List<Group> groups;
   final Color cardBg;
@@ -349,7 +349,7 @@ class _MobileList extends StatelessWidget {
   }
 }
 
-// ----------------- TABLET GRID (big box cards + bigger fonts/icons) -----------------
+// ---- TABLET GRID (big box cards + bigger fonts/icons) 
 class _TabletGrid extends StatelessWidget {
   final List<Group> groups;
   final Color cardBg;

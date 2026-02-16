@@ -60,7 +60,7 @@ class GroupDetailScreen extends StatelessWidget {
       body: ListView(
         padding: EdgeInsets.zero,
         children: [
-          // ===== HEADER (NOT ROUNDED) =====
+          //  HEADER
           Container(
             color: headerBg,
             padding: const EdgeInsets.fromLTRB(16, 6, 16, 18),
@@ -94,7 +94,7 @@ class GroupDetailScreen extends StatelessWidget {
 
           const SizedBox(height: 14),
 
-          // ===== SUMMARY CARD =====
+          // SUMMARY CARD
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Card(
@@ -126,7 +126,7 @@ class GroupDetailScreen extends StatelessWidget {
 
           const SizedBox(height: 12),
 
-          // ===== 3 ACTION BUTTONS =====
+          // 3 ACTION BUTTONS
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
@@ -175,7 +175,7 @@ class GroupDetailScreen extends StatelessWidget {
 
           const SizedBox(height: 18),
 
-          // ===== EXPENSE LIST TITLE =====
+          // EXPENSE LIST TITLE
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
@@ -188,7 +188,7 @@ class GroupDetailScreen extends StatelessWidget {
           ),
           const SizedBox(height: 10),
 
-          // ===== EXPENSE LIST =====
+          // EXPENSE LIST
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
@@ -232,7 +232,7 @@ class GroupDetailScreen extends StatelessWidget {
         ],
       ),
 
-      // ===== ADD EXPENSE BUTTON =====
+      // ADD EXPENSE BUTTON
       floatingActionButton: isDark
           ? FloatingActionButton.extended(
               backgroundColor: cs.surface,

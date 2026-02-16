@@ -58,7 +58,7 @@ class FriendsScreen extends StatelessWidget {
             builder: (_) => AlertDialog(
               title: const Text('Contact Access'),
               content: const Text(
-                'This is a prototype demo.\n\nIn a real app, PayPatch would request permission to read contacts.',
+                'Please accept the request.\n\nPayPatch is request permission to read contacts.',
               ),
               actions: [
                 TextButton(

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  static const _seed = Color(0xFF4F7D6A); // your green
-  static const _accent = Color(0xFFE8AC73); // your orange
+  static const _seed = Color(0xFF4F7D6A); // my green
+  static const _accent = Color(0xFFE8AC73); //  my orange
 
   static ThemeData get light {
     return ThemeData(
