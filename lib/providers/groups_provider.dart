@@ -8,7 +8,7 @@ import '../data/sample_data.dart';
 import '../config.dart';
 
 class GroupsProvider extends ChangeNotifier {
-  static const String _baseUrl = AppConfig.baseUrl;
+  static String get _baseUrl => AppConfig.baseUrl;
 
   final String? _token;
   List<Group> _groups = [];

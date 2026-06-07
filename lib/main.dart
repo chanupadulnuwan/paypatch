@@ -8,9 +8,11 @@ import 'providers/friends_provider.dart';
 import 'providers/connectivity_provider.dart';
 import 'providers/announcements_provider.dart';
 import 'screens/splash/splash_screen.dart';
+import 'config.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await AppConfig.loadIp();
   runApp(const PayPatchApp());
 }
 

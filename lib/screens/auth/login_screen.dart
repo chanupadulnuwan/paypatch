@@ -4,6 +4,8 @@ import '../../providers/auth_provider.dart';
 import 'register_screen.dart';
 import '../home/home_screen.dart';
 import '../../widgets/google_logo.dart';
+import '../../config.dart';
+import '../../widgets/custom_alert.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -29,9 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final password = _passwordCtrl.text;
 
     if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in all fields.')),
-      );
+      showCustomAlert(context, 'Please fill in all fields.');
       return;
     }
 
@@ -47,12 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: Theme.of(context).colorScheme.error,
-            content: Text(e.toString().replaceAll('Exception: ', '').trim()),
-          ),
-        );
+        showCustomAlert(context, e.toString().replaceAll('Exception: ', '').trim());
       }
     }
   }
@@ -96,14 +91,76 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       if (mounted) {
         Navigator.pop(context); // Close loading dialog
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: Theme.of(context).colorScheme.error,
-            content: Text(e.toString().replaceAll('Exception: ', '').trim()),
-          ),
-        );
+        showCustomAlert(context, e.toString().replaceAll('Exception: ', '').trim());
       }
     }
+  }
+
+  void _showIpConfigDialog(BuildContext context) {
+    final ipCtrl = TextEditingController(text: AppConfig.ipAddress);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Row(
+          children: [
+            Icon(Icons.settings_ethernet, color: Color(0xFF4F7D6A)),
+            SizedBox(width: 8),
+            Text('Server IP Config', style: TextStyle(fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Enter your computer\'s local IP address (e.g. 192.168.1.5) to connect to the Laravel backend server.',
+              style: TextStyle(fontSize: 14),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: ipCtrl,
+              decoration: InputDecoration(
+                labelText: 'Laravel Server IP',
+                hintText: '192.168.1.88',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                prefixIcon: const Icon(Icons.computer),
+              ),
+              keyboardType: TextInputType.text,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4F7D6A),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () async {
+              final newIp = ipCtrl.text.trim();
+              if (newIp.isNotEmpty) {
+                await AppConfig.saveIp(newIp);
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  showCustomAlert(
+                    context,
+                    'Server IP updated successfully to: $newIp\nBackend URL: ${AppConfig.baseUrl}',
+                    isSuccess: true,
+                  );
+                }
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -119,8 +176,10 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       backgroundColor: panelColor,
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
+        child: Stack(
+          children: [
+            LayoutBuilder(
+              builder: (context, constraints) {
             final isDesktop = constraints.maxWidth >= 900;
 
             Widget buildTopImage({BoxFit fit = BoxFit.cover}) {
@@ -360,7 +419,20 @@ class _LoginScreenState extends State<LoginScreen> {
             );
           },
         ),
-      ),
-    );
+        Positioned(
+          top: 12,
+          right: 12,
+          child: CircleAvatar(
+            backgroundColor: Colors.black.withOpacity(0.35),
+            child: IconButton(
+              icon: const Icon(Icons.settings, color: Colors.white),
+              onPressed: () => _showIpConfigDialog(context),
+            ),
+          ),
+        ),
+      ],
+    ),
+  ),
+);
   }
 }

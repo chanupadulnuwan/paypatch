@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../config.dart';
 
 class AuthProvider extends ChangeNotifier {
-  static const String _baseUrl = AppConfig.baseUrl;
+  static String get _baseUrl => AppConfig.baseUrl;
   
   String? _token;
   Map<String, dynamic>? _user;
