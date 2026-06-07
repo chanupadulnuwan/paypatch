@@ -59,7 +59,7 @@ class AuthProvider extends ChangeNotifier {
         Uri.parse('$_baseUrl/login'),
         headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
         body: json.encode({'email': email, 'password': password}),
-      );
+      ).timeout(const Duration(seconds: 7));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -97,7 +97,7 @@ class AuthProvider extends ChangeNotifier {
           'email': email,
           'password': password,
         }),
-      );
+      ).timeout(const Duration(seconds: 7));
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         final data = json.decode(response.body);
