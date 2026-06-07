@@ -1,29 +1,30 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppConfig {
-  static String _ipAddress = '192.168.1.88'; // Default fallback IP
+  static String _baseUrl = 'http://192.168.1.88/CB016173/paypatch-laravel/public/api'; // Default fallback for XAMPP
 
-  static String get ipAddress => _ipAddress;
+  static String get baseUrl => _baseUrl;
 
-  static String get baseUrl => 'http://$_ipAddress:8000/api';
-
-  /// Load IP from SharedPreferences
+  /// Load Base URL from SharedPreferences
   static Future<void> loadIp() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      _ipAddress = prefs.getString('api_ip_address') ?? '192.168.1.88';
+      _baseUrl = prefs.getString('api_base_url') ?? 'http://192.168.1.88/CB016173/paypatch-laravel/public/api';
     } catch (_) {
-      // Fallback to default if SharedPreferences fails (e.g. initial start)
-      _ipAddress = '192.168.1.88';
+      _baseUrl = 'http://192.168.1.88/CB016173/paypatch-laravel/public/api';
     }
   }
 
-  /// Save IP to SharedPreferences and update memory cache
-  static Future<void> saveIp(String ip) async {
-    _ipAddress = ip.trim();
+  /// Save Base URL to SharedPreferences and update memory cache
+  static Future<void> saveIp(String url) async {
+    String formattedUrl = url.trim();
+    if (formattedUrl.endsWith('/')) {
+      formattedUrl = formattedUrl.substring(0, formattedUrl.length - 1);
+    }
+    _baseUrl = formattedUrl;
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('api_ip_address', _ipAddress);
+      await prefs.setString('api_base_url', _baseUrl);
     } catch (_) {}
   }
 }

@@ -97,7 +97,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _showIpConfigDialog(BuildContext context) {
-    final ipCtrl = TextEditingController(text: AppConfig.ipAddress);
+    final urlCtrl = TextEditingController(text: AppConfig.baseUrl);
 
     showDialog(
       context: context,
@@ -107,29 +107,38 @@ class _LoginScreenState extends State<LoginScreen> {
           children: [
             Icon(Icons.settings_ethernet, color: Color(0xFF4F7D6A)),
             SizedBox(width: 8),
-            Text('Server IP Config', style: TextStyle(fontWeight: FontWeight.bold)),
+            Text('Server API URL Config', style: TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Enter your computer\'s local IP address (e.g. 192.168.1.5) to connect to the Laravel backend server.',
-              style: TextStyle(fontSize: 14),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: ipCtrl,
-              decoration: InputDecoration(
-                labelText: 'Laravel Server IP',
-                hintText: '192.168.1.88',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
-                prefixIcon: const Icon(Icons.computer),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Configure the full API URL of your Laravel server. Make sure your phone and computer are on the same Wi-Fi.',
+                style: TextStyle(fontSize: 14),
               ),
-              keyboardType: TextInputType.text,
-            ),
-          ],
+              const SizedBox(height: 12),
+              const Text(
+                'Examples:\n'
+                '• XAMPP Apache: http://<computer-ip>/CB016173/paypatch-laravel/public/api\n'
+                '• php artisan serve: http://<computer-ip>:8000/api',
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: urlCtrl,
+                decoration: InputDecoration(
+                  labelText: 'Laravel API Base URL',
+                  hintText: 'http://192.168.1.88/CB016173/paypatch-laravel/public/api',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                  prefixIcon: const Icon(Icons.link),
+                ),
+                keyboardType: TextInputType.url,
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -143,14 +152,14 @@ class _LoginScreenState extends State<LoginScreen> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             onPressed: () async {
-              final newIp = ipCtrl.text.trim();
-              if (newIp.isNotEmpty) {
-                await AppConfig.saveIp(newIp);
+              final newUrl = urlCtrl.text.trim();
+              if (newUrl.isNotEmpty) {
+                await AppConfig.saveIp(newUrl);
                 if (context.mounted) {
                   Navigator.pop(context);
                   showCustomAlert(
                     context,
-                    'Server IP updated successfully to: $newIp\nBackend URL: ${AppConfig.baseUrl}',
+                    'Server Base URL updated successfully to:\n$newUrl',
                     isSuccess: true,
                   );
                 }
