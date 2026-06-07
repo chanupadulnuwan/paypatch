@@ -1360,11 +1360,11 @@ class _MembersSheetState extends State<_MembersSheet> {
             Flexible(
               child: ListView.separated(
                 shrinkWrap: true,
-                itemCount: members.length + (widget.canEdit ? 1 : 0),
+                itemCount: members.length + 1,
                 separatorBuilder: (context, index) =>
                     const SizedBox(height: 10),
                 itemBuilder: (context, index) {
-                  if (widget.canEdit && index == members.length) {
+                  if (index == members.length) {
                     return Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
