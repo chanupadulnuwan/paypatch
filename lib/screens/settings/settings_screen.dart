@@ -5,6 +5,7 @@ import 'package:battery_plus/battery_plus.dart';
 
 import '../../theme/theme_controller.dart';
 import 'announcements_screen.dart';
+import 'insights_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -138,6 +139,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onPressed: _getBatteryState,
                 tooltip: 'Check Battery Level',
               ),
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // Insights Card
+          Card(
+            elevation: 0,
+            color: cardBg,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
+              side: BorderSide(color: cs.outlineVariant),
+            ),
+            child: ListTile(
+              leading: Icon(
+                Icons.bar_chart_rounded,
+                color: cs.primary,
+              ),
+              title: const Text(
+                'Insights',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: const Text('Charts and spending breakdown'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const InsightsScreen()),
+                );
+              },
             ),
           ),
           const SizedBox(height: 10),

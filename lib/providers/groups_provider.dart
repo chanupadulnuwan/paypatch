@@ -597,6 +597,31 @@ class GroupsProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> leaveGroup(String groupId) async {
+    if (_token == null) return false;
+    _isLoadingDetails = true;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      final response = await _client.post(
+        Uri.parse('$_baseUrl/groups/$groupId/leave'),
+        headers: {..._authJsonHeaders, 'Content-Type': 'application/json'},
+      );
+      if (_isSuccessful(response.statusCode)) {
+        await fetchGroups(isOnline: true);
+        return true;
+      }
+      _errorMessage = _extractErrorMessage(response) ?? 'Failed to leave group.';
+      return false;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '').trim();
+      return false;
+    } finally {
+      _isLoadingDetails = false;
+      notifyListeners();
+    }
+  }
+
   Future<bool> sendReminders(String groupId, List<int> memberIds) async {
     if (_token == null) return false;
     try {

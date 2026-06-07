@@ -22,6 +22,8 @@ class GroupDetailScreen extends StatefulWidget {
 }
 
 class _GroupDetailScreenState extends State<GroupDetailScreen> {
+  int _currentUserId = 0;
+
   @override
   void initState() {
     super.initState();
@@ -114,7 +116,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
     }
   }
 
-  Future<void> _openMembersSheet(bool canEdit) async {
+  Future<void> _openMembersSheet(bool canEdit, int currentUserId) async {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -123,6 +125,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
       builder: (_) => _MembersSheet(
         groupId: widget.group.id,
         canEdit: canEdit,
+        currentUserId: currentUserId,
       ),
     );
   }
@@ -139,7 +142,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
       backgroundColor: Theme.of(context).colorScheme.surface,
       builder: (_) => _EditGroupSheet(
         groupId: widget.group.id,
-        onOpenMembers: () => _openMembersSheet(true),
+        onOpenMembers: () => _openMembersSheet(true, _currentUserId),
       ),
     );
 
@@ -295,6 +298,11 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
         .where((m) => m['is_current_user'] == true)
         .map((m) => (m['id'] as num).toInt())
         .firstOrNull ?? 0;
+    if (currentUserId != 0 && currentUserId != _currentUserId) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() => _currentUserId = currentUserId);
+      });
+    }
 
     final groupName =
         groupData?['name']?.toString() ?? widget.group.name;
@@ -347,7 +355,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                   widget.group.profileImageUrl,
               onBack: () => Navigator.pop(context),
               onSync: _syncDetails,
-              onMembers: () => _openMembersSheet(canEdit),
+              onMembers: () => _openMembersSheet(canEdit, currentUserId),
               onEdit: canEdit ? () => _openEditGroupSheet(canEdit) : null,
             ),
             const SizedBox(height: 16),
@@ -1164,10 +1172,12 @@ class _MembersSheet extends StatefulWidget {
   const _MembersSheet({
     required this.groupId,
     required this.canEdit,
+    required this.currentUserId,
   });
 
   final String groupId;
   final bool canEdit;
+  final int currentUserId;
 
   @override
   State<_MembersSheet> createState() => _MembersSheetState();
@@ -1282,6 +1292,32 @@ class _MembersSheetState extends State<_MembersSheet> {
           : (provider.errorMessage ?? 'Failed to remove the member.'),
       isSuccess: success,
     );
+  }
+
+  Future<void> _leaveGroup() async {
+    final confirmed = await showConfirmationDialog(
+      context,
+      title: 'Leave Group?',
+      message: 'You will no longer be part of this group and its expenses.',
+      confirmLabel: 'Leave',
+      isDestructive: true,
+    );
+    if (!confirmed || !mounted) return;
+    setState(() => _busyMemberId = -1);
+    final provider = Provider.of<GroupsProvider>(context, listen: false);
+    final success = await provider.leaveGroup(widget.groupId);
+    if (!mounted) return;
+    setState(() => _busyMemberId = null);
+    if (success) {
+      Navigator.pop(context);
+      Navigator.pop(context);
+    } else {
+      await showCustomAlert(
+        context,
+        provider.errorMessage ?? 'Failed to leave the group.',
+        isSuccess: false,
+      );
+    }
   }
 
   @override
@@ -1489,7 +1525,18 @@ class _MembersSheetState extends State<_MembersSheet> {
                             ],
                           ),
                         ),
-                        if (widget.canEdit && member['is_owner'] != true)
+                        if (memberId == widget.currentUserId && member['is_owner'] != true)
+                          _busyMemberId == -1
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : TextButton(
+                                  onPressed: _leaveGroup,
+                                  child: Text('Leave', style: TextStyle(color: cs.error)),
+                                )
+                        else if (widget.canEdit && member['is_owner'] != true && memberId != widget.currentUserId)
                           isBusy
                               ? const SizedBox(
                                   width: 18,
@@ -2166,10 +2213,30 @@ class _SettleUpSheetState extends State<_SettleUpSheet> {
               ),
             ),
             const SizedBox(height: 16),
-            if (balances.isEmpty)
-              const Padding(
-                padding: EdgeInsets.all(20),
-                child: Center(child: Text('No balances to show yet.')),
+            if (balances.isEmpty || balances.values.every((v) => v.abs() < 0.01))
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Center(
+                  child: Column(
+                    children: [
+                      const Icon(Icons.check_circle_outline, color: Color(0xFF4F7D6A), size: 48),
+                      const SizedBox(height: 12),
+                      Text(
+                        'You\'re all settled up!',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 18,
+                          color: const Color(0xFF4F7D6A),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'No outstanding balances in this group.',
+                        style: TextStyle(color: Colors.grey.shade600),
+                      ),
+                    ],
+                  ),
+                ),
               )
             else
               ConstrainedBox(
