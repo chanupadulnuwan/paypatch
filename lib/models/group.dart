@@ -27,9 +27,22 @@ class Group {
     this.totalExpenses = 0,
   });
 
+  static String _normalizeCurrency(String? raw) {
+    const symbolMap = {
+      r'$': 'USD',
+      '€': 'EUR',
+      '£': 'GBP',
+      '¥': 'JPY',
+      'A\$': 'AUD',
+    };
+    if (raw == null || raw.isEmpty) return 'LKR';
+    return symbolMap[raw] ?? raw;
+  }
+
   factory Group.fromJson(Map<String, dynamic> json) {
     final balanceValue = json['your_balance'] ?? json['balance'] ?? 0.0;
     final totalExpensesValue = json['total_expenses'] ?? 0.0;
+    final currency = Group._normalizeCurrency(json['currency']?.toString());
 
     return Group(
       id: json['id']?.toString() ?? '',
@@ -42,8 +55,8 @@ class Group {
                 0,
       balance: (balanceValue as num).toDouble(),
       description: json['description']?.toString() ??
-          'Currency: ${json['currency'] ?? 'LKR'}',
-      currency: json['currency']?.toString() ?? 'LKR',
+          'Currency: $currency',
+      currency: currency,
       expenses: (json['expenses'] as List?) ?? const [],
       coverImageUrl: json['cover_image_url']?.toString(),
       coverImagePreset: json['cover_image_preset']?.toString(),
