@@ -12,6 +12,7 @@ import '../../providers/connectivity_provider.dart';
 import '../../providers/groups_provider.dart';
 import '../../utils/currency_utils.dart';
 import '../../widgets/custom_alert.dart';
+import '../posts/create_post_screen.dart';
 
 class GroupDetailScreen extends StatefulWidget {
   const GroupDetailScreen({super.key, required this.group});
@@ -339,12 +340,41 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
 
     return Scaffold(
       backgroundColor: pageBackground,
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _openAddExpenseDialog(details, currency, usdToLkrRate),
-        backgroundColor: isDark ? cs.surface : cs.primary,
-        foregroundColor: isDark ? cs.primary : Colors.white,
-        icon: const Icon(Icons.add),
-        label: const Text('Add Expense'),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (canEdit)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: FloatingActionButton.extended(
+                heroTag: 'sharePostFAB',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => CreatePostScreen(
+                      groupId: widget.group.id,
+                      groupName: groupName,
+                    ),
+                    ),
+                  );
+                },
+                backgroundColor: isDark ? cs.surface : const Color(0xFFE8AC73),
+                foregroundColor: isDark ? const Color(0xFFE8AC73) : Colors.white,
+                icon: const Icon(Icons.photo_camera_outlined),
+                label: const Text('Share Post'),
+              ),
+            ),
+          FloatingActionButton.extended(
+            heroTag: 'addExpenseFAB',
+            onPressed: () => _openAddExpenseDialog(details, currency, usdToLkrRate),
+            backgroundColor: isDark ? cs.surface : cs.primary,
+            foregroundColor: isDark ? cs.primary : Colors.white,
+            icon: const Icon(Icons.add),
+            label: const Text('Add Expense'),
+          ),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: _syncDetails,

@@ -78,7 +78,7 @@ class AnnouncementDetailScreen extends StatelessWidget {
                       date,
                       style: TextStyle(
                         fontSize: 12,
-                        color: cs.onSurface.withOpacity(0.6),
+                        color: cs.onSurface.withValues(alpha: 0.6),
                       ),
                     ),
                   ],
@@ -104,7 +104,7 @@ class AnnouncementDetailScreen extends StatelessWidget {
                   content,
                   style: theme.textTheme.bodyLarge?.copyWith(
                     height: 1.6,
-                    color: isDark ? cs.onSurface.withOpacity(0.9) : Colors.black87,
+                    color: isDark ? cs.onSurface.withValues(alpha: 0.9) : Colors.black87,
                   ),
                 ),
                 const SizedBox(height: 30),
@@ -117,7 +117,7 @@ class AnnouncementDetailScreen extends StatelessWidget {
                 Row(
                   children: [
                     CircleAvatar(
-                      backgroundColor: cs.primary.withOpacity(0.1),
+                      backgroundColor: cs.primary.withValues(alpha: 0.1),
                       child: Icon(Icons.campaign, color: cs.primary),
                     ),
                     const SizedBox(width: 12),
@@ -136,7 +136,7 @@ class AnnouncementDetailScreen extends StatelessWidget {
                           'PayPatch System Channel',
                           style: TextStyle(
                             fontSize: 11,
-                            color: cs.onSurface.withOpacity(0.5),
+                            color: cs.onSurface.withValues(alpha: 0.5),
                           ),
                         ),
                       ],

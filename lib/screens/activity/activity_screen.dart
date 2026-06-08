@@ -74,17 +74,21 @@ class _ActivityScreenState extends State<ActivityScreen> {
 
   IconData _iconForLogType(String type) {
     switch (type) {
-      case 'settlement': return Icons.check_circle_outline;
-      case 'reminder':   return Icons.notifications_outlined;
-      default:           return Icons.info_outline;
+      case 'settlement':   return Icons.check_circle_outline;
+      case 'reminder':     return Icons.notifications_outlined;
+      case 'post_like':    return Icons.favorite_outline;
+      case 'post_comment': return Icons.chat_bubble_outline;
+      default:             return Icons.info_outline;
     }
   }
 
   Color _colorForLogType(String type, ColorScheme cs) {
     switch (type) {
-      case 'settlement': return const Color(0xFF4F7D6A);
-      case 'reminder':   return const Color(0xFFE8AC73);
-      default:           return cs.primary;
+      case 'settlement':   return const Color(0xFF4F7D6A);
+      case 'reminder':     return const Color(0xFFE8AC73);
+      case 'post_like':    return const Color(0xFFE8AC73);
+      case 'post_comment': return const Color(0xFF4F7D6A);
+      default:             return cs.primary;
     }
   }
 
@@ -224,7 +228,15 @@ class _ActivityScreenState extends State<ActivityScreen> {
                               icon: _iconForLogType(type),
                               iconBg: logColor.withValues(alpha: 0.15),
                               iconColor: logColor,
-                              title: type == 'reminder' ? 'Reminder' : type == 'settlement' ? 'Settlement' : 'Notice',
+                              title: type == 'reminder'
+                                  ? 'Reminder'
+                                  : type == 'settlement'
+                                      ? 'Settlement'
+                                      : type == 'post_like'
+                                          ? 'Post Liked'
+                                          : type == 'post_comment'
+                                              ? 'New Comment'
+                                              : 'Notice',
                               subtitle: message,
                               trailing: grp ?? '',
                               trailingColor: logColor,

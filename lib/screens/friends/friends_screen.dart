@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../models/group_post.dart';
 import '../../providers/connectivity_provider.dart';
 import '../../providers/friends_provider.dart';
+import '../../providers/posts_provider.dart';
 import '../../widgets/custom_alert.dart';
 import '../../widgets/fade_slide_item.dart';
 import '../../widgets/net_image.dart';
+import '../posts/story_viewer_screen.dart';
 
 class FriendsScreen extends StatefulWidget {
   const FriendsScreen({super.key});
@@ -310,6 +313,83 @@ class _FriendsScreenState extends State<FriendsScreen> {
                   ],
                 ),
               ),
+
+            // Stories row
+            Consumer<PostsProvider>(
+              builder: (ctx, postsProv, _) {
+                if (postsProv.posts.isEmpty) return const SizedBox.shrink();
+                // Group posts by user — one bubble per user (their latest post)
+                final Map<String, GroupPost> byUser = {};
+                for (final p in postsProv.posts) {
+                  if (!byUser.containsKey(p.userId)) byUser[p.userId] = p;
+                }
+                final storyPosts = byUser.values.toList();
+                return SizedBox(
+                  height: 96,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: storyPosts.length,
+                    itemBuilder: (_, index) {
+                      final post = storyPosts[index];
+                      // Find all posts by this user for the viewer
+                      final userPosts = postsProv.posts.where((p) => p.userId == post.userId).toList();
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            PageRouteBuilder(
+                              pageBuilder: (context, anim, secondary) => FadeTransition(
+                                opacity: anim,
+                                child: StoryViewerScreen(posts: userPosts, initialIndex: 0),
+                              ),
+                              transitionDuration: const Duration(milliseconds: 350),
+                              reverseTransitionDuration: const Duration(milliseconds: 250),
+                            ),
+                          );
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 14),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Gradient ring around avatar
+                              Container(
+                                padding: const EdgeInsets.all(3),
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: LinearGradient(
+                                    colors: [Color(0xFF4F7D6A), Color(0xFFE8AC73)],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                ),
+                                child: Container(
+                                  padding: const EdgeInsets.all(2),
+                                  decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.white),
+                                  child: NetImage(url: post.userPhotoUrl, radius: 26, fallbackText: post.userName),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              SizedBox(
+                                width: 60,
+                                child: Text(
+                                  post.userName.split(' ').first,
+                                  textAlign: TextAlign.center,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
 
             // Friends list
             Expanded(

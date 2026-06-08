@@ -7,6 +7,7 @@ import 'providers/groups_provider.dart';
 import 'providers/friends_provider.dart';
 import 'providers/activity_badge_provider.dart';
 import 'providers/connectivity_provider.dart';
+import 'providers/posts_provider.dart';
 import 'providers/announcements_provider.dart';
 import 'screens/splash/splash_screen.dart';
 import 'config.dart';
@@ -72,6 +73,15 @@ class _PayPatchAppState extends State<PayPatchApp> {
           update: (context, auth, previous) {
             previous?.updateToken(auth.token);
             return previous ?? ActivityBadgeProvider(auth.token);
+          },
+        ),
+        ChangeNotifierProxyProvider<AuthProvider, PostsProvider>(
+          create: (context) => PostsProvider(
+            Provider.of<AuthProvider>(context, listen: false).token,
+          ),
+          update: (context, auth, previous) {
+            previous?.updateToken(auth.token);
+            return previous ?? PostsProvider(auth.token);
           },
         ),
       ],
