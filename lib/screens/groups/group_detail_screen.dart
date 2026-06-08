@@ -159,6 +159,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
   void _openSettleUpSheet({
     required List<Map<String, dynamic>> members,
     required List<Map<String, dynamic>> expenses,
+    required List<Map<String, dynamic>> settlements,
     required int currentUserId,
     required String currency,
   }) {
@@ -171,6 +172,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
         groupId: widget.group.id,
         members: members,
         expenses: expenses,
+        settlements: settlements,
         currentUserId: currentUserId,
         currency: currency,
       ),
@@ -180,6 +182,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
   void _openBalancesSheet({
     required List<Map<String, dynamic>> members,
     required List<Map<String, dynamic>> expenses,
+    required List<Map<String, dynamic>> settlements,
     required int currentUserId,
     required String currency,
   }) {
@@ -191,6 +194,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
       builder: (_) => _BalancesSheet(
         members: members,
         expenses: expenses,
+        settlements: settlements,
         currentUserId: currentUserId,
         currency: currency,
       ),
@@ -290,6 +294,11 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
         .map((expense) => Map<String, dynamic>.from(expense))
         .toList();
 
+    final settlements = (groupData?['settlements'] as List? ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .map((s) => Map<String, dynamic>.from(s))
+        .toList();
+
     final members = (details?['members'] as List? ?? const [])
         .whereType<Map<String, dynamic>>()
         .map((m) => Map<String, dynamic>.from(m))
@@ -371,6 +380,30 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (balanceValue.abs() < 0.01 && expenses.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF4F7D6A).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.check_circle_outline, color: Color(0xFF4F7D6A), size: 16),
+                            SizedBox(width: 5),
+                            Text(
+                              'All Settled ✓',
+                              style: TextStyle(
+                                color: Color(0xFF4F7D6A),
+                                fontWeight: FontWeight.w700,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    else
                     Text(
                       summaryText,
                       style: theme.textTheme.titleLarge?.copyWith(
@@ -380,7 +413,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                             : const Color(0xFFCC7A29),
                       ),
                     ),
-                    if (lkrApprox != null && usdToLkrRate != null) ...[
+                    if (lkrApprox != null && usdToLkrRate != null && balanceValue.abs() >= 0.01) ...[
                       const SizedBox(height: 8),
                       Text(
                         'Approx. Rs. ${lkrApprox.toStringAsFixed(2)} at 1 USD = Rs. ${usdToLkrRate.toStringAsFixed(2)}',
@@ -405,6 +438,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                       onTap: () => _openSettleUpSheet(
                         members: members,
                         expenses: expenses,
+                        settlements: settlements,
                         currentUserId: currentUserId,
                         currency: currency,
                       ),
@@ -418,6 +452,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                       onTap: () => _openBalancesSheet(
                         members: members,
                         expenses: expenses,
+                        settlements: settlements,
                         currentUserId: currentUserId,
                         currency: currency,
                       ),
@@ -2097,6 +2132,7 @@ class _SettleUpSheet extends StatefulWidget {
     required this.groupId,
     required this.members,
     required this.expenses,
+    required this.settlements,
     required this.currentUserId,
     required this.currency,
   });
@@ -2104,6 +2140,7 @@ class _SettleUpSheet extends StatefulWidget {
   final String groupId;
   final List<Map<String, dynamic>> members;
   final List<Map<String, dynamic>> expenses;
+  final List<Map<String, dynamic>> settlements;
   final int currentUserId;
   final String currency;
 
@@ -2123,6 +2160,7 @@ class _SettleUpSheetState extends State<_SettleUpSheet> {
       final id = (m['id'] as num).toInt();
       if (id != widget.currentUserId) bal[id] = 0.0;
     }
+    // Step 1: compute raw balance from expenses
     for (final exp in widget.expenses) {
       final paidBy = (exp['paid_by'] as num?)?.toInt() ?? 0;
       final amount = (exp['amount'] as num?)?.toDouble() ?? 0.0;
@@ -2133,6 +2171,19 @@ class _SettleUpSheetState extends State<_SettleUpSheet> {
         }
       } else if (bal.containsKey(paidBy)) {
         bal[paidBy] = (bal[paidBy] ?? 0) - share;
+      }
+    }
+    // Step 2: subtract settled amounts
+    for (final s in widget.settlements) {
+      final from = (s['from_user_id'] as num?)?.toInt();
+      final to   = (s['to_user_id']   as num?)?.toInt();
+      final amt  = (s['amount'] as num?)?.toDouble() ?? 0.0;
+      if (to == widget.currentUserId && from != null && bal.containsKey(from)) {
+        // `from` paid currentUser — reduces `from`'s debt
+        bal[from] = (bal[from] ?? 0) - amt;
+      } else if (from == widget.currentUserId && to != null && bal.containsKey(to)) {
+        // currentUser paid `to` — reduces currentUser's debt to `to`
+        bal[to] = (bal[to] ?? 0) + amt;
       }
     }
     return bal;
@@ -2149,8 +2200,12 @@ class _SettleUpSheetState extends State<_SettleUpSheet> {
   Future<void> _settleSelected() async {
     final balances = _balances;
     final allSettled = balances.isEmpty || balances.values.every((v) => v.abs() < 0.01);
-    if (allSettled || _selectedIds.isEmpty) {
+    if (allSettled) {
       await showCustomAlert(context, 'You\'re all settled up! No outstanding balances.', isSuccess: true);
+      return;
+    }
+    if (_selectedIds.isEmpty) {
+      await showCustomAlert(context, 'Select at least one person to settle with.');
       return;
     }
     setState(() => _isBusy = true);
@@ -2351,12 +2406,14 @@ class _BalancesSheet extends StatelessWidget {
   const _BalancesSheet({
     required this.members,
     required this.expenses,
+    required this.settlements,
     required this.currentUserId,
     required this.currency,
   });
 
   final List<Map<String, dynamic>> members;
   final List<Map<String, dynamic>> expenses;
+  final List<Map<String, dynamic>> settlements;
   final int currentUserId;
   final String currency;
 
@@ -2378,6 +2435,16 @@ class _BalancesSheet extends StatelessWidget {
         }
       } else if (bal.containsKey(paidBy)) {
         bal[paidBy] = (bal[paidBy] ?? 0) - share;
+      }
+    }
+    for (final s in settlements) {
+      final from = (s['from_user_id'] as num?)?.toInt();
+      final to   = (s['to_user_id']   as num?)?.toInt();
+      final amt  = (s['amount'] as num?)?.toDouble() ?? 0.0;
+      if (to == currentUserId && from != null && bal.containsKey(from)) {
+        bal[from] = (bal[from] ?? 0) - amt;
+      } else if (from == currentUserId && to != null && bal.containsKey(to)) {
+        bal[to] = (bal[to] ?? 0) + amt;
       }
     }
     return bal;
